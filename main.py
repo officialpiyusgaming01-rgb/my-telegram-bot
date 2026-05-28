@@ -14,7 +14,6 @@ def home():
     return "Bot is active 24/7 on Render!"
 
 def run_web_server():
-    # Render automatically PORT provide karta hai, isliye os.environ ka use kiya hai
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
 
@@ -25,11 +24,10 @@ def keep_alive():
 
 # 2. Main Telegram Bot Setup
 BOT_TOKEN = "8797130773:AAHAYSlvwjRZP-TqR1bmaG7KXnbO4_cndTE"
-# num_threads=4 se bot ek sath kaafi users ko fast response de payega
 bot = telebot.TeleBot(BOT_TOKEN, num_threads=4)
 
 CHANNEL_USERNAME = "@profits_app" 
-ADMIN_ID = 7013666151  # Aapki asli Admin ID yahan set kar di hai
+ADMIN_ID = 7013666151  # Aapki asli Admin ID
 DB_FILE = "database.json"
 
 # Database Helper Functions
@@ -59,7 +57,7 @@ def show_main_menu(user_id, user_name):
     markup = types.InlineKeyboardMarkup()
     btn_wallet = types.InlineKeyboardButton("💰 My Wallet", callback_data="check_wallet")
     markup.add(btn_wallet)
-    bot.send_message(user_id, f"👋 Namaste {user_name}!\n\nWelcome back to PIYUS GAMING Bot. Aapka account active hai.", reply_markup=markup)
+    bot.send_message(user_id, f"👋 **Namaste {user_name}!**\n\nWelcome back to PIYUS GAMING Bot. Aapka account active hai.", reply_markup=markup)
 
 # /start Command Handler
 @bot.message_handler(commands=['start'])
@@ -69,19 +67,26 @@ def send_welcome(message):
         user_name = message.from_user.first_name
         
         db = load_data()
-        # Naye user ko 100 bonus coins ke sath register karein
         if user_id not in db:
             db[user_id] = {"name": user_name, "coins": 100}
             save_data(db)
             
-        # Force Join Verification
+        # Naya aur Aacha Message Layout (Force Join)
         if not is_user_subscribed(message.chat.id):
             markup = types.InlineKeyboardMarkup()
             btn_join = types.InlineKeyboardButton("📢 Join Channel", url="https://t.me/profits_app")
             btn_refresh = types.InlineKeyboardButton("🔄 Maine Join Kar Liya", callback_data="check_again")
             markup.add(btn_join, btn_refresh)
             
-            bot.send_message(user_id, f"❌ **Hey {user_name}!**\n\nIs bot ko use karne ke liye aapko hamare official channel ko join karna hoga:", reply_markup=markup)
+            # Yahan maine aapka text mast change kar diya hai:
+            bot.send_message(
+                user_id, 
+                f"⚠️ **Hey {user_name}! Access Denied**\n\n"
+                f"Is bot ke premium features aur coins wallet use karne ke liye, "
+                f"aapko hamare **Official Telegram Channel** ko join karna zaroori hai.\n\n"
+                f"👇 **Neeche button par click karke join karein:**", 
+                reply_markup=markup
+            )
             return 
             
         show_main_menu(user_id, user_name)
@@ -99,7 +104,7 @@ def callback_listener(call):
         if call.data == "check_wallet":
             user_coins = db.get(user_id, {}).get("coins", 0)
             bot.send_message(user_id, f"💳 **Aapka Wallet Balance:**\n\n💰 Coins: {user_coins} Coins\n🆔 Your ID: `{user_id}`")
-            bot.answer_callback_query(call.id)  # Loading circle ko turant remove karne ke liye
+            bot.answer_callback_query(call.id)
             
         elif call.data == "check_again":
             if is_user_subscribed(int(user_id)):
@@ -110,7 +115,7 @@ def callback_listener(call):
     except Exception as e:
         print(f"Callback Error: {e}")
 
-# Admin Command: Coins Add Karne Ke Liye (/addcoins USER_ID COINS)
+# Admin Command: /addcoins USER_ID COINS
 @bot.message_handler(commands=['addcoins'])
 def add_coins_admin(message):
     try:
@@ -133,7 +138,7 @@ def add_coins_admin(message):
             bot.reply_to(message, f"✅ Done! ID {target_id} me {coins_to_add} coins add ho gaye.")
             bot.send_message(int(target_id), f"🎁 **Admin ne aapke wallet me {coins_to_add} Coins add kiye hain!**")
         else:
-            bot.reply_to(message, "❌ Yeh User ID database me nahi mili!")
+            bot.reply_to(message, "❌ Yeh User ID database me nahi mila!")
     except Exception as e:
         bot.reply_to(message, f"Error: {e}")
 
@@ -144,9 +149,9 @@ print("🚀 Render Highly-Optimized Bot Live!")
 bot.remove_webhook()
 time.sleep(1)
 
-# Super fast polling configuration (kam timeout taaki delay na ho)
 while True:
     try:
         bot.polling(none_stop=True, timeout=5, long_polling_timeout=5)
     except Exception as e:
         time.sleep(3)
+        
