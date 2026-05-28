@@ -26,7 +26,10 @@ def keep_alive():
 BOT_TOKEN = "8797130773:AAHAYSlvwjRZP-TqR1bmaG7KXnbO4_cndTE"
 bot = telebot.TeleBot(BOT_TOKEN, num_threads=4)
 
-CHANNEL_USERNAME = "@profits_app" 
+# 📢 Aapke Dono Channels Yahan Set Hain
+CHANNEL_1 = "@profits_app" 
+CHANNEL_2 = "@modp_apk" 
+
 ADMIN_ID = 7013666151  # Aapki asli Admin ID
 DB_FILE = "database.json"
 
@@ -41,13 +44,19 @@ def save_data(data):
     with open(DB_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
-# Strictly check karega channel membership
+# Dono channels ki membership strictly check karega
 def is_user_subscribed(user_id):
     try:
-        member = bot.get_chat_member(CHANNEL_USERNAME, user_id)
-        if member.status in ['member', 'creator', 'administrator']:
-            return True
-        return False
+        # First Channel Check
+        member1 = bot.get_chat_member(CHANNEL_1, user_id)
+        is_joined1 = member1.status in ['member', 'creator', 'administrator']
+        
+        # Second Channel Check
+        member2 = bot.get_chat_member(CHANNEL_2, user_id)
+        is_joined2 = member2.status in ['member', 'creator', 'administrator']
+        
+        # Dono joined honge tabhi True milega
+        return is_joined1 and is_joined2
     except Exception as e:
         print(f"❌ Channel Check Error: {e}")
         return False 
@@ -71,20 +80,24 @@ def send_welcome(message):
             db[user_id] = {"name": user_name, "coins": 100}
             save_data(db)
             
-        # Naya aur Aacha Message Layout (Force Join)
+        # Agar dono me se ek bhi channel join nahi kiya hai
         if not is_user_subscribed(message.chat.id):
             markup = types.InlineKeyboardMarkup()
-            btn_join = types.InlineKeyboardButton("📢 Join Channel", url="https://t.me/profits_app")
-            btn_refresh = types.InlineKeyboardButton("🔄 Maine Join Kar Liya", callback_data="check_again")
-            markup.add(btn_join, btn_refresh)
             
-            # Yahan maine aapka text mast change kar diya hai:
+            # Dono channels ke buttons alag-alag
+            btn_join1 = types.InlineKeyboardButton("📢 Join Channel 1", url="https://t.me/profits_app")
+            btn_join2 = types.InlineKeyboardButton("📢 Join Channel 2", url="https://t.me/modp_apk")
+            btn_refresh = types.InlineKeyboardButton("🔄 Maine Dono Join Kar Liya", callback_data="check_again")
+            
+            markup.add(btn_join1)
+            markup.add(btn_join2)
+            markup.add(btn_refresh)
+            
             bot.send_message(
                 user_id, 
                 f"⚠️ **Hey {user_name}! Access Denied**\n\n"
-                f"Is bot ke premium features aur coins wallet use karne ke liye, "
-                f"aapko hamare **Official Telegram Channel** ko join karna zaroori hai.\n\n"
-                f"👇 **Neeche button par click karke join karein:**", 
+                f"Is bot ko use karne ke liye aapko hamare **DONO** official channels ko join karna zaroori hai.\n\n"
+                f"👇 **Neeche dono buttons par click karke join kejiye:**", 
                 reply_markup=markup
             )
             return 
@@ -108,10 +121,10 @@ def callback_listener(call):
             
         elif call.data == "check_again":
             if is_user_subscribed(int(user_id)):
-                bot.answer_callback_query(call.id, "✅ Thank you join karne ke liye!")
+                bot.answer_callback_query(call.id, "✅ Thank you dono channels join karne ke liye!")
                 show_main_menu(user_id, user_name)
             else:
-                bot.answer_callback_query(call.id, "❌ Aapne abhi tak join nahi kiya hai!", show_alert=True)
+                bot.answer_callback_query(call.id, "❌ Aapne abhi tak dono channels join nahi kiye hain!", show_alert=True)
     except Exception as e:
         print(f"Callback Error: {e}")
 
@@ -125,7 +138,7 @@ def add_coins_admin(message):
             
         text = message.text.split()
         if len(text) != 3:
-            bot.reply_to(message, "⚠️ Sahi format: `/addcoins USER_ID COINS` \n\nExample: `/addcoins 7013666151 500`")
+            bot.reply_to(message, "⚠️ Sahi format: `/addcoins USER_ID COINS`")
             return
             
         target_id = text[1]
@@ -154,4 +167,4 @@ while True:
         bot.polling(none_stop=True, timeout=5, long_polling_timeout=5)
     except Exception as e:
         time.sleep(3)
-        
+            
