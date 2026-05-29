@@ -1,5 +1,4 @@
-
-        import telebot
+import telebot
 from telebot import types
 import json
 import os
@@ -45,7 +44,7 @@ def is_user_subscribed(user_id):
         return m1 and m2
     except: return False
 
-# Main Menu UI (All Features)
+# Main Menu UI (All Features Fixed)
 def show_main_menu(user_id, user_name):
     markup = types.InlineKeyboardMarkup(row_width=2)
     btn_watch = types.InlineKeyboardButton("📺 Watch & Earn", callback_data="watch_video")
@@ -63,7 +62,7 @@ def show_main_menu(user_id, user_name):
         user_id, 
         f"👋 **Namaste {user_name}!**\n\n"
         f"Welcome to **PIYUS GAMING Ultimate Earning Bot**! 🎉\n\n"
-        f"Neeche diye gaye tariko se coins kamayein aur Free Fire Diamonds ya Paytm Cash redeem karein! 🔥", 
+        f"Neeche diye gaye tariko se coins kamayein aur Free Fire Diamonds ya Paytm Cash redeem karo! 🔥", 
         reply_markup=markup
     )
 
@@ -111,7 +110,7 @@ def send_welcome(message):
             )
             return 
             
-        # Agar purana user tha ya naye user ne directly join karke khola, refer reward check karein
+        # Refer reward process
         if is_new_user and db[user_id]["referred_by"]:
             referrer = db[user_id]["referred_by"]
             if referrer in db:
@@ -119,7 +118,7 @@ def send_welcome(message):
                 save_data(db)
                 try: bot.send_message(int(referrer), f"👥 **Refer Alert!** Aapke link se {user_name} ne bot join kiya. Aapko **50 Coins** mile! 🎉")
                 except: pass
-                db[user_id]["referred_by"] = None # Reset taaki baar-baar na mile
+                db[user_id]["referred_by"] = None
                 save_data(db)
 
         show_main_menu(user_id, user_name)
@@ -157,7 +156,7 @@ def callback_listener(call):
         elif call.data == "daily_bonus":
             current_time = time.time()
             last_bonus = db.get(user_id, {}).get("last_bonus", 0)
-            if current_time - last_bonus < 86400: # 24 Hours check
+            if current_time - last_bonus < 86400:
                 time_passed = current_time - last_bonus
                 hours_left = int((86400 - time_passed) // 3600)
                 bot.answer_callback_query(call.id, f"❌ Aap apna aaj ka bonus le chuke hain! agle {hours_left} ghante baad aana.", show_alert=True)
@@ -173,7 +172,6 @@ def callback_listener(call):
             current_time = time.time()
             last_reset = db.get(user_id, {}).get("last_spin_reset", 0)
             
-            # Reset daily spins if 24h passed
             if current_time - last_reset > 86400:
                 db[user_id]["spins_left"] = 3
                 db[user_id]["last_spin_reset"] = current_time
@@ -216,8 +214,7 @@ def callback_listener(call):
             markup = types.InlineKeyboardMarkup()
             btn_ff = types.InlineKeyboardButton("🎮 50 FF Diamonds (2000 Coins)", callback_data="redeem_ff")
             btn_paytm = types.InlineKeyboardButton("💸 20 Rs Paytm Cash (1000 Coins)", callback_data="redeem_paytm")
-            markup.add(btn_ff)
-            markup.add(btn_paytm)
+            markup.add(btn_ff, btn_paytm)
             bot.send_message(user_id, "🛒 **PIYUS GAMING Redeem Store**\n\nApna reward select karein:", reply_markup=markup)
             bot.answer_callback_query(call.id)
 
